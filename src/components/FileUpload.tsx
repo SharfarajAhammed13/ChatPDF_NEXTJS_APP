@@ -2,15 +2,29 @@
 import { useDropzone } from 'react-dropzone'
 import React from 'react'
 import { Inbox } from 'lucide-react';
+import { uploadToS3 } from '@/lib/s3';
 
 
 const FileUpload = () => {
     const {getRootProps, getInputProps} = useDropzone({
         accept:{ 'application/pdf': ['.pdf']},
         maxFiles:1,
-        onDrop: (acceptedFiles) => {
+        onDrop: async (acceptedFiles) => {
             console.log(acceptedFiles);
-        }
+            const file = acceptedFiles[0]
+            if (file.size > 10 *1024 *1024) {
+                // big files than 10mb
+                alert('please upload smaller pdf')
+                return
+            }
+
+            try {
+                const data = await uploadToS3(file);
+                console.log('data',data);
+            } catch (error) {
+                console.log(error)
+            }
+        },
     });
   return (
     <div className='p-2 bg-white rounded-xl'>
